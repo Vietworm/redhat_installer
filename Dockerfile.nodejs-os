@@ -1,0 +1,83 @@
+# This file describes the standard way to build dev env base on CentOS, using docker
+#
+# @image            vietworm/nodejs-os
+# @author           Hai <hai@100dayproject>
+# @github           https://github.com/vietworm/docker-nodejs-os
+# @dockerhub        https://hub.docker.com/r/vietworm/nodejs-os
+#
+# @default package: NodeJS v4.x, nvm, nginx/1.10.1 or lastest, mongodb v3.2.6 and redis (latest stable)
+# @Package describes:
+#       + Nginx: Configure default
+#       + Mongodb v3.2.6: Setup authentication, bind ip to external, create user authentication default: [root/jeremyhai]
+#       + Redis (latest stable): Configure default
+#
+#       - Nginx repos: https://raw.githubusercontent.com/Vietworm/redhat_installer/master/nginx.repo
+#       - Mongodb 3.2 repos: https://raw.githubusercontent.com/Vietworm/redhat_installer/master/mongodb-org-3.2.repo
+#       - Mongodb 3.2 Configure: https://raw.githubusercontent.com/Vietworm/redhat_installer/master/mongod.conf
+#
+###########################################################################################
+
+FROM centos:6.8
+
+MAINTAINER VIETWORM <hai@100dayproject>
+LABEL Vendor="CentOS"
+LABEL License="MIT"
+
+# Install development tools
+
+RUN yum update -y
+RUN yum install -y vim
+RUN yum install -y tar
+RUN yum install -y wget
+RUN yum install -y git
+RUN yum install -y gcc-c++
+RUN yum install -y make
+# RUN yum install -y build-essential
+# RUN yum install -y tcl8.5
+
+RUN mkdir -p /var/opt/docker_nodejs-os
+WORKDIR /var/opt/docker_nodejs-os
+
+
+# Download and install redis
+
+RUN wget http://download.redis.io/releases/redis-stable.tar.gz
+
+RUN tar -xvf redis-stable.tar.gz
+
+WORKDIR /var/opt/docker_nodejs-os/redis-stable
+
+RUN make
+RUN make test
+RUN make install
+
+WORKDIR /var/opt/docker_nodejs-os/redis-stable/utils
+
+RUN sudo ./install_server.sh
+
+
+
+
+#################################################################
+# For Debian and Ubuntu based Linux distributions
+#
+#RUN curl -sL https://deb.nodesource.com/setup_4.x | sudo -E bash -
+#RUN yum install -y nodejs
+#
+################################################################
+
+# Fork repos and install nodejs
+
+RUN curl --silent --location https://rpm.nodesource.com/setup_4.x | bash -
+RUN yum install nodejs -y
+
+# Download and install nginx
+
+RUN sudo wget -P /etc/yum.repos.d/ https://raw.githubusercontent.com/Vietworm/redhat_installer/master/nginx.repo
+
+
+# Download mongod configure, repos and install mongodb 3.2 repos
+
+RUN sudo wget -P /var/opt/docker_nodejs-os https://raw.githubusercontent.com/Vietworm/redhat_installer/master/mongod.conf
+
+RUN sudo wget -P /etc/yum.repos.d/ https://raw.githubusercontent.com/Vietworm/redhat_installer/master/mongodb-org-3.2.repo
