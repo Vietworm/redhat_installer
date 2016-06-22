@@ -1,2 +1,2 @@
-# redhat_installer support for docker images
-yum repo package, setup script tool installer, etc..
+# redhat_installer
+yum repo package, setup script tool installer, etc.. support for docker images
